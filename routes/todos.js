@@ -6,7 +6,7 @@ module.exports = (app) => {
   router.post('/',
     app.middlewares.ensureAuthenticated,
     app.middlewares.bodyParser.json(),
-    app.middlewares.ensureFields('userId'),
+    app.middlewares.ensureFields('title'),
     app.actions.todos.create
   );
 
@@ -22,6 +22,10 @@ module.exports = (app) => {
     app.middlewares.ensureAuthenticated,
     app.middlewares.bodyParser.json(),
     app.actions.todos.update)
+
+  router.put('/:id/assign/:assignedId',
+    app.middlewares.ensureAuthenticated,
+    app.actions.todos.assign)
 
   router.delete('/:id',
     app.middlewares.ensureAuthenticated,

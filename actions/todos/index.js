@@ -7,15 +7,16 @@ module.exports = (app) => {
     list,
     show,
     update,
+    assign,
     remove
   }
 
   function create(req, res, next){
     let user = null;
 
-    User.findById(req.body.userId)
+    User.findById(req.userId)
       .then(app.utils.ensureOne)
-      .catch(app.utils.reject(403, 'invalid.todos'))
+      .catch(app.utils.reject(403, 'invalid.users'))
       .then(createTodo)
       .then(setUsers)
       .then(persist)
@@ -28,8 +29,8 @@ module.exports = (app) => {
     }
 
     function setUsers(todo){
-      todo.creator = req.body.userId;
-      todo.assigned = req.body.userId;
+      todo.creator = req.userId;
+      todo.assigned = req.userId;
       return todo;
     }
 
@@ -58,6 +59,14 @@ module.exports = (app) => {
   }
 
   function update(req, res, next){
+    Todo.findByIdAndUpdate(req.body.id, req.body)
+      .then(app.utils.ensureOne)
+      .catch(app.utils.reject(404, 'todos.not.found'))
+      .then(res.commit)
+      .catch(res.error)
+  }
+
+  function assign(req, res, next){
     Todo.findByIdAndUpdate(req.body.id, req.body)
       .then(app.utils.ensureOne)
       .catch(app.utils.reject(404, 'todos.not.found'))
