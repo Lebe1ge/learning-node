@@ -1,5 +1,8 @@
 {
   "port": 1337,
+  "security" : {
+    "salt": "iloveodop"
+  },
   "db": {
     "mongo": {
       "url": "mongodb://localhost:27017/todolist"

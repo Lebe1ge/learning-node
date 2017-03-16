@@ -11,6 +11,10 @@ module.exports = (app) => {
       type: String,
       required: true
     },
+    password: {
+      type: String,
+      required: true
+    },
     todos: [
       {
         type: app.mongoose.Schema.Types.ObjectId,

@@ -2,6 +2,7 @@ const express = require('express');
 const logger = require('./logger');
 const app = express();
 
+require('./utils')(app);
 require('./settings')(app);
 require('./models')(app);
 require('./middlewares')(app);

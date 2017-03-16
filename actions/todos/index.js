@@ -14,12 +14,13 @@ module.exports = (app) => {
     let user = null;
 
     User.findById(req.body.userId)
-      .then(ensureOne)
+      .then(app.utils.ensureOne)
+      .catch(app.utils.reject(403, 'invalid.todos'))
       .then(createTodo)
       .then(setUsers)
       .then(persist)
-      .then(respond.bind(null, res))
-      .catch(spread.bind(null, res))
+      .then(res.commit)
+      .catch(res.error)
 
     function createTodo(data) {
       user = data;
@@ -46,46 +47,30 @@ module.exports = (app) => {
 
   function list(req, res, next){
     Todo.find()
-      .then(respond.bind(null, res))
-      .catch(spread.bind(null, res))
+      .then(res.commit)
+      .catch(res.error)
   }
 
   function show(req, res, next){
     Todo.findById(req.params.id)
-      .then(respond.bind(null, res))
-      .catch(spread.bind(null, res))
+      .then(res.commit)
+      .catch(res.error)
   }
 
   function update(req, res, next){
     Todo.findByIdAndUpdate(req.body.id, req.body)
-      .then(ensureOne)
-      .then(respond.bind(null, res))
-      .catch(spread.bind(null, res))
+      .then(app.utils.ensureOne)
+      .catch(app.utils.reject(404, 'todos.not.found'))
+      .then(res.commit)
+      .catch(res.error)
   }
 
   function remove(req, res, next){
     Todo.findByIdAndRemove(req.params.id)
-      .then(ensureOne)
-      .then(respond.bind(null, res))
-      .catch(spread.bind(null, res))
+      .then(app.utils.ensureOne)
+      .catch(app.utils.reject(404, 'todos.not.found'))
+      .then(res.commit)
+      .catch(res.error)
   }
 
-}
-
-function ensureOne(data){
-  return (data) ? data : Promise.reject({code: 404, message: 'todo.not.found'})
-}
-
-function respond(res, data) {
-  if(!data)
-    return res.status(204).send()
-
-  return res.send(data)
-}
-
-function spread(res, error) {
-  if(error.code){
-    return res.status(error.code).send(error.message)
-  }
-  return res.status(500).send(error.message)
 }

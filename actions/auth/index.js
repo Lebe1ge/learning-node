@@ -1,4 +1,5 @@
 const sha1 = require('sha1');
+const jwt = require('jsonwebtoken');
 
 module.exports = (app) => {
   const Token = app.models.Token;
@@ -8,45 +9,28 @@ module.exports = (app) => {
       login
   };
 
-
   function login(req, res, next) {
     User.findOne({
       email: req.body.email,
       password: sha1(req.body.password)
     })
-      .then(ensureOne)
-      .then(createToken)
-      .then(getTokenId)
-      .then(respond.bind(null, res))
-      .catch(spread.bind(null, res));
+      .then(app.utils.ensureOne)
+      .catch(app.utils.reject(401, 'invalid.credentials'))
+      .then(sign)
+      .then(res.commit)
+      .catch(res.error);
 
-    function createToken(user){
-      return new Token({userId: user._id})
-        .save();
-    }
+    function sign(user){
+      return new Promise((resolve, reject) =>{
+        jwt.sign({data: {userId: user._id}}, app.settings.security.salt, {
+          expiresIn: '1h'
+        }, (err, encryptedToken) => {
+          if(err)
+            return reject(err);
 
-    function getTokenId(token) {
-      return token._id;
+          return resolve(encryptedToken);
+        });
+      });
     }
   }
 };
-
-function ensureOne(data) {
-  return (data) ? data : Promise.reject({code: 404, message: 'Todo.not.found'})
-}
-
-function respond(res, data) {
-  if (!data) {
-    return res.status(204).send()
-  }
-
-  return res.send(data);
-}
-
-function spread(res, error) {
-  if (error.code) {
-    return res.status(error.code).send(error.message);
-  }
-
-  return res.status(500).send(error);
-}
